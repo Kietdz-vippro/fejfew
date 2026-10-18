@@ -1,0 +1,210 @@
+<script>
+const page1 = document.getElementById("page1");
+const page2 = document.getElementById("page2");
+const nextButton = document.getElementById("nextButton");
+const cloudTransition = document.getElementById("cloudTransition");
+
+let transitioning = false;
+let youtubePlayer;
+let youtubeReady = false;
+
+// Đã gán sẵn ID bài hát từ link của bạn vào đây
+const MY_VIDEO_ID = "U4tOd6KBRwY"; 
+
+/* TẠO TRÌNH PHÁT YOUTUBE */
+function onYouTubeIframeAPIReady() {
+    youtubePlayer = new YT.Player("youtubePlayer", {
+        width: "1",
+        height: "1",
+        videoId: MY_VIDEO_ID,
+        playerVars: {
+            autoplay: 0,
+            controls: 0,
+            loop: 1,
+            playlist: MY_VIDEO_ID
+        },
+        events: {
+            onReady: function(event) {
+                youtubeReady = true;
+                event.target.setVolume(70);
+            }
+        }
+    });
+}
+
+/* TẢI API YOUTUBE */
+(function() {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+})();
+
+/* CHUYỂN TRANG + PHÁT NHẠC NGAY KHI BẤM NÚT */
+nextButton.addEventListener("click", function() {
+    if (transitioning) return;
+
+    // Phát nhạc trực tiếp theo thao tác click của người dùng để tránh bị trình duyệt chặn
+    if (youtubeReady && youtubePlayer) {
+        youtubePlayer.playVideo();
+    }
+
+    transitioning = true;
+    nextButton.disabled = true;
+
+    cloudTransition.innerHTML = "";
+
+    for (let i = 0; i < 30; i++) {
+        const img = document.createElement("img");
+
+        img.src = "anh.jpg";
+        img.className = "transition-image";
+        img.alt = "";
+
+        img.style.setProperty(
+            "--delay",
+            (Math.random() * 0.3) + "s"
+        );
+
+        cloudTransition.appendChild(img);
+    }
+
+    cloudTransition.classList.add("active", "cover");
+
+    setTimeout(function() {
+        page2.style.visibility = "visible";
+        page2.style.zIndex = "3";
+    }, 850);
+
+    setTimeout(function() {
+        cloudTransition.classList.remove("cover");
+        cloudTransition.classList.add("shrink");
+    }, 1100);
+
+    setTimeout(function() {
+        page1.style.display = "none";
+        page2.style.zIndex = "2";
+
+        cloudTransition.classList.remove("active", "shrink");
+        cloudTransition.innerHTML = "";
+    }, 2100);
+});
+
+/* TIM BAY */
+function createHeart() {
+    const heart = document.createElement("div");
+    heart.className = "heart";
+
+    const hearts = ["♥", "♡", "💗", "💕"];
+    heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.fontSize = (15 + Math.random() * 25) + "px";
+
+    const duration = 5 + Math.random() * 5;
+    heart.style.animationDuration = duration + "s";
+
+    document.body.appendChild(heart);
+
+    setTimeout(function() {
+        heart.remove();
+    }, duration * 1000);
+}
+
+setInterval(createHeart, 700);
+
+/* ÁNH SAO */
+function createSparkle() {
+    const sparkle = document.createElement("div");
+    sparkle.className = "sparkle";
+    sparkle.textContent = "✦";
+
+    sparkle.style.left = Math.random() * 100 + "vw";
+    sparkle.style.top = Math.random() * 100 + "vh";
+    sparkle.style.fontSize = (8 + Math.random() * 15) + "px";
+    sparkle.style.animationDelay = Math.random() * 2 + "s";
+
+    document.body.appendChild(sparkle);
+
+    setTimeout(function() {
+        sparkle.remove();
+    }, 5000);
+}
+
+setInterval(createSparkle, 400);
+
+/* PHÁO HOA */
+function launchFirework() {
+    const x = 10 + Math.random() * 80;
+    const startY = window.innerHeight + 10;
+    const endY = window.innerHeight * (0.15 + Math.random() * 0.35);
+
+    const rocket = document.createElement("div");
+    rocket.className = "rocket";
+    rocket.style.left = x + "vw";
+    rocket.style.top = startY + "px";
+
+    document.body.appendChild(rocket);
+
+    const travelTime = 700 + Math.random() * 500;
+    const startTime = performance.now();
+
+    function moveRocket(now) {
+        const progress = Math.min((now - startTime) / travelTime, 1);
+        const currentY = startY + (endY - startY) * progress;
+
+        rocket.style.top = currentY + "px";
+
+        if (progress < 1) {
+            requestAnimationFrame(moveRocket);
+        } else {
+            rocket.remove();
+            explode(x * window.innerWidth / 100, endY);
+        }
+    }
+
+    requestAnimationFrame(moveRocket);
+}
+
+function explode(x, y) {
+    const colors = ["#ff4fa3", "#ffd166", "#ffffff", "#a78bfa", "#7df9ff"];
+
+    for (let i = 0; i < 35; i++) {
+        const particle = document.createElement("div");
+        particle.className = "firework-particle";
+
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        particle.style.background = color;
+        particle.style.color = color;
+        particle.style.left = x + "px";
+        particle.style.top = y + "px";
+
+        document.body.appendChild(particle);
+
+        const angle = Math.PI * 2 * i / 35;
+        const speed = 50 + Math.random() * 130;
+        const dx = Math.cos(angle) * speed;
+        const dy = Math.sin(angle) * speed;
+
+        const animation = particle.animate([
+            {
+                transform: "translate(0, 0) scale(1)",
+                opacity: 1
+            },
+            {
+                transform: `translate(${dx}px, ${dy}px) scale(0.2)`,
+                opacity: 0
+            }
+        ], {
+            duration: 800 + Math.random() * 500,
+            easing: "ease-out"
+        });
+
+        animation.onfinish = function() {
+            particle.remove();
+        };
+    }
+}
+
+setInterval(launchFirework, 1500);
+</script>
